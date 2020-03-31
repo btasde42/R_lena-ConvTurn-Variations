@@ -1,0 +1,34 @@
+---
+title: "R Notebook for Stage"
+output: itf_visualisation
+---
+
+
+
+```{r}
+devtools::install_github("HomeBankCode/rlena", dependencies = TRUE,force = TRUE)
+library(rlena)
+library(dplyr, warn.conflicts = FALSE)
+```
+
+```{r}
+get_5_min_convTurns <-function(file)
+{  
+  its <- read_its_file(file)
+  x<-gather_segments(its)
+  gsub(":(.)([01234])",":\\10",gsub(":(.)([56789])",":\\15",gsub("(.*):(.*)","\\1",x)))
+  x$rnd=round_to_5min(x$startClockTime)
+  x$convTurnCount_x_n=x$convTurnCount-c(NA,x$convTurnCount[1:(length(x$convTurnCount)-1)])
+  x[1:500,c("convTurnCount_x_n","segId","spkr","startTime","endTime",'rnd',"convTurnCount")]->eg
+
+  eg  
+
+}
+```
+```{r}
+tab <- get_5_min_convTurns("~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its")
+
+tab
+
+```
+
