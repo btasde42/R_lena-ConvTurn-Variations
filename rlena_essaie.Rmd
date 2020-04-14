@@ -12,23 +12,43 @@ library(dplyr, warn.conflicts = FALSE)
 ```
 
 ```{r}
-get_5_min_convTurns <-function(file)
-{  
+round_to_5min= function(x) gsub(":(.)([01234])",":\\10",gsub(":(.)([56789])",":\\15",gsub("(.*):(.*)","\\1",x)))
+
+```
+
+
+```{r}
+file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
   its <- read_its_file(file)
   x<-gather_segments(its)
-  gsub(":(.)([01234])",":\\10",gsub(":(.)([56789])",":\\15",gsub("(.*):(.*)","\\1",x)))
   x$rnd=round_to_5min(x$startClockTime)
-  x$convTurnCount_x_n=x$convTurnCount-c(NA,x$convTurnCount[1:(length(x$convTurnCount)-1)])
-  x[1:500,c("convTurnCount_x_n","segId","spkr","startTime","endTime",'rnd',"convTurnCount")]->eg
 
-  eg  
-
-}
-```
-```{r}
-tab <- get_5_min_convTurns("~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its")
-
+  x$is_CT=ifelse(x$convTurnType %in% c("TIFR","TIMR"),1,0)
+  # don't count: "TIMI","TIFE","TIFI","TIME", "NT
+ # NT TIFE TIFI TIFR TIME TIMI TIMR
+  
+  tab <- aggregate(x$startTime,x$is_CT,by=list(x$rnd),sum,na.rm=T)
+  
 tab
 
+```
+```{r}
+#child utterence count
+file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
+  its <- read_its_file(file)
+  x<-gather_segments(its)
+  x$rnd=round_to_5min(x$startClockTime)
+  tab <- aggregate(x$childUttCnt,by=list(x$rnd),sum,na.rm=T)
+  tab
+```
+
+```{r}
+file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
+  its <- read_its_file(file)
+  x<-gather_segments(its)
+  x$rnd=round_to_5min(x$startClockTime)
+  x$adultcnt <- sum(x$maleAdultUttCnt,x$femaleAdultUttCnt)
+  x
+  #tab <- aggregate(x$maleAdultUttCnt,x$femaleAdultUttCnt,by=list(x$rnd),sum,na.rm=T)
 ```
 
