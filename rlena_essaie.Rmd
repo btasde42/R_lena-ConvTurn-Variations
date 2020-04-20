@@ -18,6 +18,7 @@ round_to_5min= function(x) gsub(":(.)([01234])",":\\10",gsub(":(.)([56789])",":\
 
 
 ```{r}
+#
 file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
   its <- read_its_file(file)
   x<-gather_segments(its)
@@ -27,28 +28,47 @@ file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
   # don't count: "TIMI","TIFE","TIFI","TIME", "NT
  # NT TIFE TIFI TIFR TIME TIMI TIMR
   
-  tab <- aggregate(x$startTime,x$is_CT,by=list(x$rnd),sum,na.rm=T)
+  tab1 <- aggregate(x$is_CT,by=list(x$rnd),sum,na.rm=T) #CTC 
+  tab2 <- aggregate(x$childUttCnt,by=list(x$rnd),sum,na.rm=T) #child utterence count
+  x$adultWordCnt=ifelse(is.na(x$femaleAdultWordCnt),0,x$femaleAdultWordCnt) + ifelse(is.na(x$maleAdultWordCnt),0,x$maleAdultWordCnt)
+  tab3 <- aggregate(x$adultWordCnt,by=list(x$rnd),sum,na.rm=T)#AdultWordCount
   
-tab
-
-```
-```{r}
-#child utterence count
-file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
-  its <- read_its_file(file)
-  x<-gather_segments(its)
-  x$rnd=round_to_5min(x$startClockTime)
-  tab <- aggregate(x$childUttCnt,by=list(x$rnd),sum,na.rm=T)
-  tab
+tab1
+tab2
+tab3
 ```
 
+
+
 ```{r}
-file="~/Desktop/EAF_builder_scripts/e20200220_153526_008232.its"
-  its <- read_its_file(file)
-  x<-gather_segments(its)
-  x$rnd=round_to_5min(x$startClockTime)
-  x$adultcnt <- sum(x$maleAdultUttCnt,x$femaleAdultUttCnt)
-  x
-  #tab <- aggregate(x$maleAdultUttCnt,x$femaleAdultUttCnt,by=list(x$rnd),sum,na.rm=T)
+
+begin=c(x[1,"startClockTime"])
+
+begintime=format(as.Date.POSIXct(begin, format="%Y-%m-%d %H:%M:%S",tz="UTC",usetz = FALSE))
+
+actual=strftime(tab[1,"Group.1"],"%Y-%m-%d %H:%M:%S",tz="CET",usetz = FALSE)
+
+
+
+diff=difftime(actual,begintime)
+
+```
+
+```{r}
+write.table(tab1, file = "CTC.csv", append = FALSE, quote = TRUE, sep = ",",
+            eol = "\n", na = "NA", dec = ".", row.names = TRUE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
+write.table(tab2, file = "CVC.csv", append = FALSE, quote = TRUE, sep = "/t",
+            eol = "\n", na = "NA", dec = ".", row.names = TRUE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
+write.table(tab3, file = "AWC.csv", append = FALSE, quote = TRUE, sep = "/t",
+            eol = "\n", na = "NA", dec = ".", row.names = TRUE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
+```
+```{python}
+
 ```
 
